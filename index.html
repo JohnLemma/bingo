@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Addictive Multiplayer Bingo Mania</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #74ABE2, #5563DE);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: rgba(255,255,255,0.97);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      max-width: 1100px;
+      width: 95%;
+      text-align: center;
+      position: relative;
+    }
+    h1 {
+      margin: 0 0 20px;
+      color: #333;
+      font-weight: 600;
+      font-size: 2.5rem;
+    }
+    /* Game Setup */
+    #gameSetup {
+      margin-bottom: 20px;
+    }
+    #gameSetup input {
+      padding: 8px;
+      font-size: 1rem;
+      width: 60px;
+      text-align: center;
+      margin-left: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #gameSetup button {
+      padding: 10px 20px;
+      margin-left: 15px;
+      border: none;
+      border-radius: 25px;
+      background: #5563DE;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+    #gameSetup button:hover { background: #3E50B4; }
+    /* Controls */
+    .controls {
+      margin: 15px 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+    .controls button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 30px;
+      background: #5563DE;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+    .controls button:hover { 
+      background: #3E50B4;
+      transform: translateY(-3px);
+    }
+    .controls button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .stats { font-size: 1.1rem; color: #333; margin-bottom: 10px; }
+    .called-numbers {
+      background: #F9F9F9;
+      padding: 15px;
+      border-radius: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    .number-chip {
+      background: #5563DE;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 1rem;
+    }
+    /* Players' Cards */
+    #playersContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .player-card {
+      background: #F1F1F1;
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 250px;
+    }
+    .player-card h2 {
+      margin: 0 0 10px;
+      color: #333;
+      font-size: 1.3rem;
+    }
+    .bingo-card {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .cell {
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .cell:hover { transform: translateY(-2px); }
+    .cell.selected {
+      background: #4CAF50;
+      color: #fff;
+      transform: scale(1.05);
+    }
+    .cell.free {
+      background: #FFC107;
+      color: #333;
+      cursor: default;
+    }
+    /* Scoreboard */
+    #scoreboardContainer {
+      margin-top: 20px;
+    }
+    #scoreboardContainer h2 { margin-bottom: 10px; color: #333; }
+    #scoreboard {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 10px;
+      text-align: left;
+    }
+    #scoreboard li { font-size: 1.1rem; margin: 5px 0; color: #333; }
+    #scoreboardContainer button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 20px;
+      background: #e74c3c;
+      color: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    #scoreboardContainer button:hover { background: #c0392b; }
+    /* Winning Message Modal */
+    .winning-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      display: none;
+      z-index: 1000;
+      animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.5);
+      z-index: 1100;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .modal-content h2 { margin-top: 0; color: #5563DE; }
+    .modal-content p { font-size: 1rem; color: #333; }
+    .modal-content button {
+      margin-top: 20px;
+      background: #5563DE;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Game Setup Section -->
+    <div id="gameSetup">
+      <h1>Multiplayer Bingo Mania</h1>
+      <label for="numPlayers">Number of Players:</label>
+      <input type="number" id="numPlayers" min="1" max="10" value="2">
+      <button onclick="startGame()">Start Game</button>
+    </div>
+    <!-- Game Container (shown after setup) -->
+    <div id="gameContainer" style="display: none;">
+      <div class="controls">
+        <button id="callNumberBtn" onclick="callNumber()">Call Number</button>
+        <button onclick="toggleAutoCall()">Auto Call: Off</button>
+        <button onclick="toggleMusic()">Toggle Music</button>
+        <button onclick="newGame()">New Game</button>
+        <button onclick="toggleInstructions()">How to Play</button>
+      </div>
+      <div class="stats" id="stats">Numbers Called: 0 / 75</div>
+      <div class="called-numbers" id="calledNumbers"></div>
+      <div id="playersContainer"></div>
+      <!-- Scoreboard Section -->
+      <div id="scoreboardContainer">
+        <h2>Scoreboard</h2>
+        <ul id="scoreboard"></ul>
+        <button onclick="resetScoreboard()">Reset Scoreboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Winning Message Modal -->
+  <div class="winning-message" id="winningMessage">
+    <h2 id="winnerText">BINGO! 🎉</h2>
+    <p>Congratulations on the win!</p>
+    <button onclick="nextRound()">Next Round</button>
+  </div>
+
+  <!-- Instructions Modal -->
+  <div class="modal" id="instructionsModal">
+    <div class="modal-content">
+      <h2>How to Play</h2>
+      <p>
+        Press "Call Number" to randomly select a number. Each player's card is automatically marked if the number appears.
+        You can also click on a cell (if the number was called) to toggle it. Complete any row, column, or diagonal to win.
+        Use Auto Call for a continuous game, toggle background music for extra ambiance, and climb the scoreboard across rounds!
+      </p>
+      <button onclick="toggleInstructions()">Close</button>
+    </div>
+  </div>
+
+  <!-- Audio Elements -->
+  <audio id="callSound" src="https://www.soundjay.com/button/sounds/button-16.mp3" preload="auto"></audio>
+  <audio id="winSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" preload="auto"></audio>
+  <!-- Background music from bensound.com (royalty-free) -->
+  <audio id="bgMusic" src="https://www.bensound.com/bensound-music/bensound-dubstep.mp3" loop preload="auto"></audio>
+
+  <!-- Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+    // Global Variables
+    let players = []; // Each player: { card, playerName, score }
+    let calledNumbers = [];
+    let currentNumber = null;
+    let autoCallInterval = null;
+    const totalNumbers = 75;
+    let bgMusicPlaying = false;
+
+    // Load scoreboard from localStorage
+    function loadScoreboard() {
+      const stored = localStorage.getItem("bingoScoreboard");
+      return stored ? JSON.parse(stored) : {};
+    }
+    function saveScoreboard(scoreboard) {
+      localStorage.setItem("bingoScoreboard", JSON.stringify(scoreboard));
+    }
+    let scoreboardData = loadScoreboard();
+
+    // Start Game: hide setup, initialize players (with scores) and cards
+    function startGame() {
+      document.getElementById("gameSetup").style.display = "none";
+      document.getElementById("gameContainer").style.display = "block";
+      const numPlayers = parseInt(document.getElementById("numPlayers").value);
+      players = [];
+      for (let i = 0; i < numPlayers; i++) {
+        const playerName = "Player " + (i + 1);
+        let score = scoreboardData[playerName] || 0;
+        players.push({
+          card: generateBingoCard(),
+          playerName: playerName,
+          score: score
+        });
+      }
+      renderPlayers();
+      updateScoreboard();
+      calledNumbers = [];
+      currentNumber = null;
+      updateCalledNumbersDisplay();
+      updateStats();
+      document.getElementById("callNumberBtn").disabled = false;
+      document.getElementById("winningMessage").style.display = "none";
+    }
+
+    // Generate a Bingo card (5x5 with FREE center)
+    function generateBingoCard() {
+      const card = [];
+      const ranges = [
+        { letter: 'B', min: 1, max: 15 },
+        { letter: 'I', min: 16, max: 30 },
+        { letter: 'N', min: 31, max: 45 },
+        { letter: 'G', min: 46, max: 60 },
+        { letter: 'O', min: 61, max: 75 }
+      ];
+      ranges.forEach((col, colIndex) => {
+        const columnNumbers = [];
+        while (columnNumbers.length < 5) {
+          const num = Math.floor(Math.random() * (col.max - col.min + 1)) + col.min;
+          if (!columnNumbers.includes(num)) columnNumbers.push(num);
+        }
+        card[colIndex] = columnNumbers;
+      });
+      card[2][2] = "FREE";
+      return card;
+    }
+
+    // Render all players' cards
+    function renderPlayers() {
+      const container = document.getElementById("playersContainer");
+      container.innerHTML = "";
+      players.forEach((player, pIndex) => {
+        const playerDiv = document.createElement("div");
+        playerDiv.className = "player-card";
+        const header = document.createElement("h2");
+        header.textContent = player.playerName;
+        playerDiv.appendChild(header);
+        const cardDiv = document.createElement("div");
+        cardDiv.className = "bingo-card";
+        for (let row = 0; row < 5; row++) {
+          for (let col = 0; col < 5; col++) {
+            const cell = document.createElement("div");
+            const cellValue = player.card[col][row];
+            cell.className = "cell" + (cellValue === "FREE" ? " free selected" : "");
+            cell.textContent = cellValue;
+            if (cellValue !== "FREE") {
+              cell.onclick = () => toggleCell(cell, pIndex, col, row);
+            }
+            cardDiv.appendChild(cell);
+          }
+        }
+        playerDiv.appendChild(cardDiv);
+        container.appendChild(playerDiv);
+      });
+    }
+
+    // Allow manual toggling of a cell if its number was called
+    function toggleCell(cell, playerIndex, col, row) {
+      const value = players[playerIndex].card[col][row];
+      if (value !== "FREE" && calledNumbers.includes(parseInt(value))) {
+        cell.classList.toggle("selected");
+        checkWinForPlayer(playerIndex);
+      }
+    }
+
+    // Call a random number and update all cards
+    function callNumber() {
+      if (calledNumbers.length >= totalNumbers) return;
+      let num;
+      do {
+        num = Math.floor(Math.random() * totalNumbers) + 1;
+      } while (calledNumbers.includes(num));
+      calledNumbers.push(num);
+      currentNumber = num;
+      updateCalledNumbersDisplay();
+      updateStats();
+      playSound("callSound");
+      autoMarkAllCards(num);
+      checkAllWins();
+    }
+
+    // Automatically mark the called number on all players' cards
+    function autoMarkAllCards(num) {
+      const allCards = document.querySelectorAll(".bingo-card");
+      players.forEach((player, index) => {
+        const cardElement = allCards[index];
+        const cells = cardElement.querySelectorAll(".cell");
+        cells.forEach(cell => {
+          if (parseInt(cell.textContent) === num) {
+            cell.classList.add("selected");
+          }
+        });
+      });
+    }
+
+    // Update display of called numbers
+    function updateCalledNumbersDisplay() {
+      const numbersDiv = document.getElementById("calledNumbers");
+      numbersDiv.innerHTML = calledNumbers.map(num => `<div class="number-chip">${num}</div>`).join('');
+    }
+
+    // Update stats display (numbers called out of total)
+    function updateStats() {
+      const statsDiv = document.getElementById("stats");
+      statsDiv.textContent = `Numbers Called: ${calledNumbers.length} / ${totalNumbers}`;
+    }
+
+    // Check win conditions for a specific player
+    function checkWinForPlayer(playerIndex) {
+      const allCards = document.querySelectorAll(".bingo-card");
+      const cardElement = allCards[playerIndex];
+      const cells = Array.from(cardElement.querySelectorAll(".cell"));
+      // Check rows
+      for (let i = 0; i < 5; i++) {
+        const rowCells = cells.slice(i * 5, i * 5 + 5);
+        if (rowCells.every(cell => cell.classList.contains("selected") || cell.classList.contains("free"))) {
+          declareWin(playerIndex);
+          return;
+        }
+      }
+      // Check columns
+      for (let col = 0; col < 5; col++) {
+        const colCells = [];
+        for (let row = 0; row < 5; row++) {
+          colCells.push(cells[col + row * 5]);
+        }
+        if (colCells.every(cell => cell.classList.contains("selected") || cell.classList.contains("free"))) {
+          declareWin(playerIndex);
+          return;
+        }
+      }
+      // Check diagonals
+      const diag1 = [cells[0], cells[6], cells[12], cells[18], cells[24]];
+      const diag2 = [cells[4], cells[8], cells[12], cells[16], cells[20]];
+      if (diag1.every(cell => cell.classList.contains("selected") || cell.classList.contains("free")) ||
+          diag2.every(cell => cell.classList.contains("selected") || cell.classList.contains("free"))) {
+        declareWin(playerIndex);
+        return;
+      }
+    }
+
+    // Check win conditions for all players
+    function checkAllWins() {
+      players.forEach((player, index) => {
+        checkWinForPlayer(index);
+      });
+    }
+
+    // Declare a win, update scoreboard, stop auto-call, and show winning modal
+    function declareWin(playerIndex) {
+      document.getElementById("winningMessage").style.display = "block";
+      const winnerName = players[playerIndex].playerName;
+      document.getElementById("winnerText").textContent = winnerName + " BINGO! 🎉";
+      document.getElementById("callNumberBtn").disabled = true;
+      stopAutoCall();
+      playSound("winSound");
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      // Update score
+      players[playerIndex].score++;
+      scoreboardData[players[playerIndex].playerName] = players[playerIndex].score;
+      saveScoreboard(scoreboardData);
+      updateScoreboard();
+    }
+
+    // Update scoreboard UI
+    function updateScoreboard() {
+      const scoreboardUl = document.getElementById("scoreboard");
+      scoreboardUl.innerHTML = players.map(player => `<li>${player.playerName}: ${player.score}</li>`).join('');
+    }
+
+    // Reset scoreboard (both UI and localStorage)
+    function resetScoreboard() {
+      players.forEach(player => { player.score = 0; });
+      scoreboardData = {};
+      saveScoreboard(scoreboardData);
+      updateScoreboard();
+    }
+
+    // Toggle auto-call mode (calls a number every 2 seconds)
+    function toggleAutoCall() {
+      const autoCallBtn = document.querySelector(".controls button:nth-child(2)");
+      if (autoCallInterval) {
+        stopAutoCall();
+        autoCallBtn.textContent = "Auto Call: Off";
+      } else {
+        autoCallInterval = setInterval(() => {
+          if (calledNumbers.length < totalNumbers) {
+            callNumber();
+          } else {
+            stopAutoCall();
+          }
+        }, 2000);
+        autoCallBtn.textContent = "Auto Call: On";
+      }
+    }
+
+    // Stop auto-call interval
+    function stopAutoCall() {
+      if (autoCallInterval) {
+        clearInterval(autoCallInterval);
+        autoCallInterval = null;
+        const autoCallBtn = document.querySelector(".controls button:nth-child(2)");
+        autoCallBtn.textContent = "Auto Call: Off";
+      }
+    }
+
+    // New game: resets everything including scoreboard
+    function newGame() {
+      stopAutoCall();
+      document.getElementById("gameSetup").style.display = "block";
+      document.getElementById("gameContainer").style.display = "none";
+      document.getElementById("winningMessage").style.display = "none";
+    }
+
+    // Next round: resets cards and called numbers but keeps scores
+    function nextRound() {
+      stopAutoCall();
+      players.forEach(player => {
+        player.card = generateBingoCard();
+      });
+      renderPlayers();
+      calledNumbers = [];
+      currentNumber = null;
+      updateCalledNumbersDisplay();
+      updateStats();
+      document.getElementById("winningMessage").style.display = "none";
+      document.getElementById("callNumberBtn").disabled = false;
+    }
+
+    // Toggle instructions modal
+    function toggleInstructions() {
+      const modal = document.getElementById("instructionsModal");
+      modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+    }
+
+    // Toggle background music on/off
+    function toggleMusic() {
+      const bgMusic = document.getElementById("bgMusic");
+      if (bgMusicPlaying) {
+        bgMusic.pause();
+        bgMusicPlaying = false;
+      } else {
+        bgMusic.play();
+        bgMusicPlaying = true;
+      }
+    }
+
+    // Play sound effects by element ID
+    function playSound(id) {
+      const sound = document.getElementById(id);
+      if (sound) {
+        sound.currentTime = 0;
+        sound.play();
+      }
+    }
+  </script>
+</body>
+</html>
